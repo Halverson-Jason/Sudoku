@@ -1,0 +1,12 @@
+{
+   "C_Cpp.intelliSenseEngineFallback": "Enabled",
+   "files.associations": {
+      "iosfwd": "cpp",
+      "istream": "cpp",
+      "iostream": "cpp",
+      "ostream": "cpp",
+      "system_error": "cpp",
+      "type_traits": "cpp",
+      "iomanip": "cpp"
+   }
+}
