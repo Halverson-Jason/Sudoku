@@ -43,7 +43,8 @@ void displayMenu();
 void editSquare(int rowCol[], char board[][9]);
 string promptSquare(int rowCol[], char board[][9]);
 
-int* getPossibles(int rowCol[], char board[][9]);
+int getPossibles(int rowCol[], char board[][9], int possibles[]);
+void showPossibles(int rowCol[], char board[][9]);
 int* createArray(int size);
 void expandArray(int* array, int size);
 
@@ -127,6 +128,7 @@ void readBoard(char board[][9], string fileName)
 void playGame(char board[][9])
 {
    bool exit = false;
+
    int rowCol[2];
    displayMenu();
    displayBoard(board);
@@ -147,13 +149,7 @@ void playGame(char board[][9])
             editSquare(rowCol, board);
             break;
          case 'S':
-            int* possibles;
-            if(promptSquare(rowCol,board) != "error")
-               {
-                  possibles = getPossibles(rowCol,board);
-               }
-            delete[] possibles;
-            possibles = NULL;
+            showPossibles(rowCol, board);
             break;
          case 'Q':
             exit = true;
@@ -167,6 +163,31 @@ void playGame(char board[][9])
 
 
    } while (!exit);
+}
+
+
+void showPossibles(int rowCol[], char board[][9])
+{
+   string userSquare;
+   int possibles[9];
+   int size;
+   userSquare = promptSquare(rowCol,board);
+   size = getPossibles(rowCol,board, possibles);
+   cout << "The possible values for '" << userSquare << "' are: ";
+
+   for (int i = 0; i < size; i++)
+   {
+      if (i != size - 1)
+      {
+         cout << possibles[i] << ", ";
+      }
+      else
+      {
+         cout << possibles[i] << endl;
+      }
+      
+   }
+   cout << endl;
 }
 
 /**********************************************************************
@@ -255,6 +276,9 @@ void displayBoard(char board[][9])
  ***********************************************************************/
 void editSquare(int rowCol[], char board[][9])
 {  
+   int sizeOfPossibles;
+   int possibleValues[9];
+   bool validChoice = false;
    string choice = promptSquare(rowCol,board);
    char value;
    int row = rowCol[0];
@@ -264,8 +288,25 @@ void editSquare(int rowCol[], char board[][9])
    {
       cout << "What is the value at '" << choice << "': ";
       cin >> value;
+      sizeOfPossibles = getPossibles(rowCol,board,possibleValues);
+      for (int i = 0; i < sizeOfPossibles; i++)
+      {  
+         if ( (value - '0') == possibleValues[i])
+         {
+            validChoice = true;
+         }
+      }
+
+      if (validChoice)
+      {
       board[row][col] = value;
       cout << endl;
+      }
+      else
+      {
+         cout << "ERROR: Value '" << value << "' in square '" << choice << "' is invalid\n\n";
+      }
+
    }
 
 }
@@ -279,11 +320,12 @@ string promptSquare(int rowCol[], char board[][9])
    int row, col;
    cout << "What are the coordinates of the square: ";
    cin >> choice;
+   choice[0] = toupper(choice[0]);
    row = choice[1] - '0';
    row -= 1;
    col = choice[0] - '0';
 
-   switch (toupper(choice[0]))
+   switch (choice[0])
    {
       case 'A':
          col = 0;
@@ -331,7 +373,7 @@ string promptSquare(int rowCol[], char board[][9])
 /**********************************************************************
  * shows the possible values of the squares
  ***********************************************************************/
-int* getPossibles(int rowCol[], char board[][9])
+int getPossibles(int rowCol[], char board[][9], int possibles[])
 {
 
    // initialize counts
@@ -348,7 +390,7 @@ int* getPossibles(int rowCol[], char board[][9])
    int* rowNotPossible = createArray(9);
    int* colNotPossible = createArray(9);
    int* boxNotPossible = createArray(9);
-   int* possibles = createArray(9);
+ 
 
    bool boxPossible;
    bool colPossible;
@@ -411,37 +453,31 @@ int* getPossibles(int rowCol[], char board[][9])
          if (board[i][j] != '0')
          {
             boxNotPossible[boxCount] = board[i][j] - '0';
-            cout << "IF LOOP boxNotPossible[" << boxCount << "] = " << board[i][j] << endl;
             // expandArray(boxNotPossible, boxCount);
             boxCount++;
          }
-         cout << "FOR LOOP 2 boxNotPossible[0]= " << boxNotPossible[0] << endl;
       }
-      cout << "FOR LOOP 1 boxNotPossible[0]= " << boxNotPossible[0] << endl;
    }
-
-   cout << "AFTER FOR LOOP boxNotPossible[0]= " << boxNotPossible[0] << endl;
-
-   cout << "BOXCOUNT = " << boxCount << endl;
 
    int valueCount = 0;
 
    for (int i = 1; i <= 9; i++)
    {
+      boxPossible = true;
+      rowPossible = true;
+      colPossible = true;
+
       for (int j = 0; j < boxCount; j++)
       {
-         boxPossible = true;
          if ( i == boxNotPossible[j] )
          {
             boxPossible = false;
-            cout << "false" << endl;
          }
 
       }
 
       for (int j = 0; j < rowCount; j++)
       {
-         rowPossible = true;
          if ( i == rowNotPossible[j])
          {
             rowPossible = false;
@@ -451,17 +487,15 @@ int* getPossibles(int rowCol[], char board[][9])
 
       for (int j = 0; j < colCount; j++)
       {
-         colPossible = true;
          if ( i == colNotPossible[j])
          {
             colPossible = false;
          }
-
       }
 
       if (boxPossible && rowPossible && colPossible)
       {
-         possibles[valueCount];
+         possibles[valueCount] = i;
          // expandArray(possibles, valueCount);
          valueCount++;
       }
@@ -473,14 +507,8 @@ int* getPossibles(int rowCol[], char board[][9])
    delete[] colNotPossible;
 
    delete[] boxNotPossible;
-   //TODO: remove couts
-   // cout << "Possible Values:\n";
-   // for (int i = 0; i < valueCount; i++)
-   // {
-   //    cout << possibles[i] << endl;
-   // }
 
-   return possibles;
+   return valueCount;
 }
 
 /**********************************************************************
